@@ -1,0 +1,34 @@
+
+dd{
+    margin: 0;
+}
+body{
+    max-width: 800px;
+    margin: 2em auto;
+    border: 1px solid #ccc;
+}
+header{
+    padding: 2em 2em 0 2em;
+}
+main{
+    padding: 0 2em 2em 2em;
+}
+dl{
+    line-height: 2em;
+    overflow: hidden;
+}
+dt{
+    font-weight: bold;
+}
+.basic dt,.contact dt{
+    float: left;
+    margin-right: 0.7em;
+}
+.basic dd,.contact dd{
+    float: left;
+    margin-right: 4em;
+}
+
+
+
+
