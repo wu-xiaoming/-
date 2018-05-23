@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>晓明</title>
+    </head>
+    <body>
+        <input id="first-number" type="number" value="0" placeholder="第一个数字">
+        <input id="second-number" type="number" value="0" placeholder="第二个数字">
+        <button id="add-btn">加</button>
+        <button id="minus-btn">减</button>
+        <button id="times-btn">乘</button>
+        <button id="divide-btn">除</button>
+        <p id="result"> 运算结果</p>
+        
+        
+        
+        <input id="dec-number" type="number" placeholder="输入一个十进制非负的整数">
+        <input id="bin-bit" type="number" placeholder="数字宽度">
+        <button id="trans-btn" onclick="test()">转化为二进制</button>
+        <p id="result" >运算结果</p>
+        <input id="buttom" value="我是一个按钮" onclick="onclick()" />
+        
+        
+        <script> 
+        
+            document.getElementById("add-btn").onclick = function(){
+                var a =document.getElementById("first-number").value;
+                var b =document.getElementById("second-number").value;
+                document.getElementById("result").innerHTML = parseInt(a)+parseInt(b);
+            }
+            document.getElementById("minus-btn").onclick = function(){
+                var a =document.getElementById("first-number").value;
+                var b =document.getElementById("second-number").value;
+                document.getElementById("result").innerHTML = parseInt(a)-parseInt(b);
+            }
+
+            document.getElementById("times-btn").onclick=function(){
+                var a = document.getElementById("first-number").value;
+                var b = document.getElementById("second-number").value;
+                document.getElementById("result").innerHTML=parseInt(a)*parseInt(b);
+            }   
+            document.getElementById("divide-btn").onclick=function(){
+                var a =document.getElementById("first-number").value;
+                var b =document.getElementById("second-number").value;
+                if(b==0){
+                    console.log("除数不能为零");
+                }
+                document.getElementById("result").innerHTML=a/b;
+            }
+            
+            var date = new Date(); 
+            if (date<12) {
+                alert("早上好");
+            } else {
+                alert("晚上好");
+            }
+            
+            document.write("<table  style='border:2px solid blue;margin:28px auto;padding: 18px;' >");
+                for(var i=1 ; i<10 ; i++ ){
+                    document.write("<tr>");//一行
+                    for(var j=1 ; j<10;j++){
+                        if (j<=i) {
+                            document.write("<td style='border:2px solid blue; background:red;'>"+i+"*"+j+"="+i*j+"</td>");
+                            
+                        } else {
+                            document.write("<td style='border:none;'></td>")
+                        }
+                    }
+                    document.write("</tr>");//一行结束
+                }
+            document.write("</table>")
+
+
+            function test(){
+                var a = document.getElementById("dec-number").value;
+                if(a<=0){
+                    console.log("错误");  
+                }
+                var b =parseInt(a).toString(2);
+                document.getElementById("result").innerHTML=b;
+                document.getElementById("bin-bit").value=b.length;
+                           
+                for(var i=1;i<100; i++){
+                    if (i%3==0) {
+                        console.log("pa");
+                    } else {
+                        console.log(i);
+                    }
+                }    
+ 
+                for(var i=1; i<10; i++){
+                    for(var b=1; b<10;b++){
+                        console.log(i+"*"+b+"="+i*b);
+                    }
+                }   
+            }
+        </script>
+    </body>
+</html>
