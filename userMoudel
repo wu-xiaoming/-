@@ -1,0 +1,421 @@
+var experss = require('express')
+var router = experss.Router();
+var crypto = require('crypto');
+
+var url = require('url');
+var path = require('path');
+var fs = require('fs');
+var sqlConn = require('./sqlConn');
+var events = require('events');
+var emitter =  new events.EventEmitter();
+var bodyParser = require('body-parser');
+
+router.use(bodyParser.json())//数据JSON类型
+
+router.use(bodyParser.urlencoded({ extended: false }));
+
+// 登陆用户
+router.get('/login', function(req, res){
+    var username = req.query.userName;
+    var employeeId = req.query.employeeId;
+    console.log(username)
+    if (!username || username == "") {
+        console.log("用户名不能为空");
+        return;
+    }
+    if(!employeeId || employeeId == "") {
+        res.send("密码不能为空");
+        return;
+    }
+    var myDate = new Date();
+    var strDate = myDate.getMonth()+1;
+    var getDate = myDate.getDate();
+    var getSeconds = myDate.getSeconds()
+    var getMinutes = myDate.getMinutes()
+    var getHours = myDate.getHours();
+    var loginTime = myDate.getFullYear()+"-"+strDate+"-"+getDate+" "+getHours+":"+getMinutes+":"+getSeconds;   
+    console.log(loginTime)
+    sqlConn.getConnection(function(err,conn){
+
+            var sql = "select roleId,employeeId from UserInfo where userName = ?  ";
+            var md5 = crypto.createHash('md5');
+            var md5Pwd = md5.update(password).digest('hex');
+            console.log(md5Pwd);    
+            conn.query(sql,username, function(err, result){
+                if (err) {
+                    console.log('连接有问题')
+                    return;
+                } else {
+                    
+                    for (var i = 0 ; i < result.length ; i++){
+                        if (md5Pwd == result[i].password) { 
+                            console.log('登陆成功')
+                            var roleIds = result[i].roleId;
+                            var ids = result[i].id 
+                            var sql = "update UserInfo set loginTime = ? where id = ?"
+                            var addSql = [loginTime,ids]
+                            conn.query(sql, addSql, function(err, result){
+                                if (roleIds == 0) {
+                                    res.send('你好 管理员')
+                                    return;
+                                } else if(roleIds == 1){
+                                    res.send('讲师界面')    
+                                    return;
+                                } else if(roleIds == 2){
+                                    res.send('同学 请开始你的考试')      
+                                    return;                
+                                }  
+                            })
+                        }   else {                             
+                            res.json('用户名或者密码错误')
+                            return ;
+                        }
+                    }                     
+                    
+                    }                                 
+                })
+                conn.release();
+            })
+    return ;
+    
+})
+
+//添加用户   
+router.post('/addUser', function(req , res){
+if (req.body) {
+        sqlConn.getConnection(function(err, conn){
+        var sql = "select * from  UserInfo where employeeId = ? "
+        var package = [];
+        var employeeId = req.body[2]
+            for (var i = 0; i<req.body.length-1; i++){
+                 package.push(req.body[i])
+            }
+            console.log(package)              
+            conn.query(sql , employeeId ,function(err, result){
+                if (result.length !== 0) {
+                    res.json({status:-1});
+                    console.log('亲， 工号已被注册');
+                    conn.release();
+                    return ;
+                } else {
+                    sql = "insert into UserInfo (userName ,password, employeeId, roleId , age,sex,unit,team,creater,creatTime) values (?,?,?,?,?,?,?,?,?,?) "                                                                      
+                    conn.query(sql , package , function(err , result){
+                        if (err) {
+                            console.log('用户添加失败')
+                            return;
+                        } else {
+                            var sql = "select userId from UserInfo where employeeId = ?"
+                            conn.query(sql,employeeId, function(err,result){
+                                
+                                var userActions = [];
+                                for(var i = 0; i < req.body[10].length;i++){
+                                    var actions = [];
+                                    actions.push(req.body[10][i]);
+                                    actions.push(result[0].userId);
+                                    userActions.push(actions);
+                                }
+                                console.log(userActions)
+                                sql = "insert into UserActions(actionsId,userId) values ? "
+                                conn.query( sql ,[userActions], function(err , value){  
+                                    if(err){
+                                        res.json({status:-1})
+                                    }else{
+                                        res.json({status:1})                              
+                                    }
+                                    conn.release();
+                                    return ;
+                                });
+                            })
+                                /*
+                            var sql = "select userId from UserInfo where employeeId = ?"
+                            conn.query( sql ,employeeId, function(err , value){     
+                                var userId = value[0].userId 
+                                console.log(userId)                          
+                                var sql = "insert into UserActions(actionsId,userId) values (?,?)"
+                                var addSql = [];
+                                
+                                action.map((item,index)=>{
+                                    addSql.push([item,userId]+'')
+                                })
+                                console.log(addSql)
+                                conn.query(sql, addSql , function(err, value){
+                                    if (err) {
+                                        console.log("用户功能添加失败")
+                                    }
+                                    res.json({status:1})
+                                    conn.release();
+                                    return;                               
+                                    
+                                })                            
+                            })*/
+                        }
+                        
+                    })                             
+                    
+                }
+            })
+          
+        })        
+    } 
+    return;
+});  
+    // var md5 = crypto.createHash('md5');
+    // var md5Pwd = md5.update(employeeId).digest('hex')
+    // var myDate = new Date();
+    // var strDate = myDate.getMonth()+1;
+    // var getDate = myDate.getDate();
+    // var getSeconds = myDate.getSeconds()
+    // var getMinutes = myDate.getMinutes()
+    // var getHours = myDate.getHours();
+    // var Time = myDate.getFullYear()+"-"+strDate+"-"+getDate+" "+getHours+":"+getMinutes+":"+getSeconds; 
+    // var creatTime = Time;
+    //  if (!userName || userName == "") {
+    //      console.log("用户名不能为空");
+    //      return;
+    //  }
+    //  if(!password || password == "") {
+    //      res.send("密码不能为空");
+    //      return;
+    //  }
+    // console.log(userName);
+    // console.log(employeeId);
+    // console.log(md5Pwd)
+    // var sql = "SELECT * from ActionInfo ";       
+    //                         conn.query(sql , function(err , value){
+    //                             if (err) {
+    //                                 console.log('获取权限失败')
+    //                                 return;
+    //                             }   else{
+    //                                 param.action = value;
+    //                                 var sql = "select action,roleId from ActionInfo a ,RoleInfo b where a.actionId = b.actionId and roleId = ?"
+    //                                 conn.query(roleId, sql, function(err,result){
+    //                                     param.role = result;
+    //                                     res.json(param)
+    //                                     console.log('获取权限信息')
+    //                                     conn.release();
+    //                                 })   
+    //                             }                                                     
+    //                         })   
+        
+//查询角色名称
+router.get('/getRoleName',function(req,res){
+    sqlConn.getConnection( function(err,conn){
+        var sql  = "select roleName, roleId from RoleInfo "
+        conn.query(sql ,function(err, result){
+            res.json(result)
+            conn.release();
+            return;
+        })
+    })
+    return;
+})
+
+//查询用户组织 
+router.get('/getAllUser',function(req ,res){
+
+    sqlConn.getConnection(function(err,conn){
+        var sql = "select * from UserInfo ";
+        conn.query(sql, function(err, result){            
+            res.json(result)
+            conn.release();
+        })          
+    })
+    return; 
+})
+
+//查询所有用户 
+router.get('/getUser',function(req,res){
+    var id = req.query.employeeId;  
+    sqlConn.getConnection(function(err ,conn){   
+        var sql = "select * from UserInfo where employeeId = ? "
+        conn.query(sql , id , function(err,result){
+            if (err) {
+                console.log("连接错误")
+                return;
+            }
+            res.json(result);
+            conn.release();
+        })
+        
+    }) 
+    return;
+})
+
+
+//删除单个用户
+router.get('/getDeleteUser',function(req,res){
+    var id = req.query.employeeId; 
+        sqlConn.getConnection(function(err, conn){
+            var sql = "delete from UserInfo where employeeId = ?"
+            conn.query(sql ,id ,function(err , result){
+                if (err) {
+                    console.log('连接错误')
+                    return;
+                }
+                res.json({status:1})
+                conn.release()    
+            })
+        })
+        
+    return;
+})
+
+
+    // 
+    router. get('/event', function(req, res){
+        var package = {
+            user : null,
+            userlogin :null
+        }
+        var addSql = ['admin' , '123456']
+        console.log(addSql)
+        var myDate = new Date();
+        console.log(myDate.toLocaleTimeString());
+        sqlConn.getConnection( function(err,conn){
+            var sql = "select COUNT(*) checkNum from UserInfo where userName = ? and password = ? ";
+            var addSql = ['admin' , '123456']
+            conn.query(sql,addSql, function(err,rows,result){       
+                var checkNum = rows[0].checkNum;
+                if(checkNum == 0){
+                    console.log('账号或密码不正确');
+                    res.send('账号或密码不正确');
+                    return;         
+                }
+                    else if (checkNum !== 0) {
+                        console.log('登录成功')
+                        var sql = 'select * from UserInfo where userName = ?'
+                        conn.query(sql ,name ,function(err, value){  
+                            if (err) {
+                                console.log('连接错误')
+                        }
+                            package.user = value;
+                            var id = value[0].roleId+"";                                      
+                            sql = "SELECT userName,roleEvents from RoleInfo a ,MenuInfo b, UserInfo c where a.menuId = b.menuId and c.roleId = a.roleId and a.roleId = ?";
+                            conn.query(sql, id, function (err, ret) {
+                                if (err) {
+                                    console.log('连接错误')
+                                }
+                                package.userlogin = ret;
+                                res.json(package);
+                                conn.release();
+                            });
+                        
+                    }) 
+            }                                            
+    
+        })
+    })
+    return ;
+})
+
+//查询所有权限
+router.get('/index', function(req , res){   
+    var param ;
+    sqlConn.getConnection(function(err, conn){
+        sql = "SELECT * from ActionInfo a , RoleActions b where a.actionId = b.actionId";       
+        conn.query(sql , function(err , value){
+            
+            if (err) {
+                console.log('获取权限失败')
+                return;
+            }   else{
+                param = value;
+                console.log('...获取权限信息')
+                res.json(param);
+            }
+        })
+        conn.release()
+    })
+    return;
+})
+
+//判断好的权限功能   没有使用
+router.get('/index1', function(req , res){   
+    var param = [];
+    sqlConn.getConnection(function(err, conn){
+        sql0 = "SELECT * from ActionInfo a , RoleActions b where a.actionId = b.actionId and roleId = 0"; 
+        sql1 = "SELECT * from ActionInfo a , RoleActions b where a.actionId = b.actionId and roleId = 1"; 
+        sql2 = "SELECT * from ActionInfo a , RoleActions b where a.actionId = b.actionId and roleId = 2"; 
+        conn.query(sql0 , function(err , value){ 
+            if (err) {
+                console.log('获取权限失败')
+                return;
+            }   else{
+                param.push(value)
+                conn.query(sql1, function(err,value){
+                    param.push(value)
+                    conn.query(sql2, function(err,value){
+                        param.push(value)
+                        console.log(param)
+                        res.json(param);
+                        conn.release();
+                    })
+                })
+            }
+        })
+       
+    })
+    return;
+})
+
+//更新信息
+router.post('/updateUser',function(req,res){
+    if (req.body){
+        var user = [];
+        for(var i = 0; i <req.body.length-1;i++){
+            user.push(req.body[i])
+        }
+        user.push(req.body[2]);
+        console.log(user)
+        var employeeId = req.body[2];
+        sqlConn.getConnection(function(err,conn){
+            var sql = "update UserInfo set userName = ? ,password = ?,employeeId=?,roleId = ?,age = ?,sex = ?,unit =?,team = ?,creater =?,creatTime =? where employeeId = ? "  
+            conn.query(sql, user, function(err, result){
+                if (err) {
+                    console.log('错误信息')
+                    return;
+                } else{
+                    var sql = "select userId where employeeId = ?"
+                    conn.query(sql, employeeId, function(err,result){
+                        if(err){
+                            console.log('连接错误')
+                            conn.release();
+                            return;
+                        }
+                        var actions= req.body[10];
+                        actions.push(result[0])
+                        console.log(actions)
+                        var sql = "update UserActions set actionsId = ? where userId = ?"; 
+                        conn.query(sql, actions, function(err ,result){
+                            req.json({status:1})
+                            conn.release();
+                            return;
+                        })
+                    })
+
+                }
+            })
+
+        })
+        return ;
+    }
+})
+    
+    //记录用户登陆信息
+router.get('/getLoginInfo',function(req ,res){
+        
+        sqlConn.getConnection(function(err , conn){
+            var sql = "select loginTime, userName,roleId from UserInfo order by loginTime desc "
+            conn.query(sql, function(err, result){
+                var time = []
+                for (var i = 0 ; i<result.length ; i++){
+                    time[i] = result[i]
+                }
+            res.json(time)
+        }) 
+        conn.release();       
+    })
+    return ;
+})
+
+module.exports = router;
