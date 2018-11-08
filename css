@@ -1,0 +1,93 @@
+*{
+    margin: 0;
+    padding:0;
+}
+.header{
+    height:110px;
+}
+a{
+    color: white;
+}
+.header .logo a{
+    float: left;
+    margin-top:40px; 
+    width: 182px;
+    height: 54px;
+    background: url("../image/HTML_03.jpg")
+    
+}
+.container{
+    position: relative;
+    margin: 0 auto;
+    width: 900px;
+}
+.header ul{
+    float: right;
+    list-style: none;
+}
+.header ul li{
+    float: left;
+    margin-top: 44px;
+    margin-left: 50px ;
+}
+.header ul li a{
+    color: #3d3d3d;
+}
+.footer {
+    margin:0 auto;
+    height: 150px;
+    padding-top:50px; 
+    background:#3d3d3d;
+}
+.footer .footer-col{    
+    width: 195px;
+    float: left;
+    margin-right:30px;
+    font-size: 16px;
+    color: #fff;
+}
+.footer  a {
+    display: block;
+    text-decoration: none;
+}
+.footer .footer-col .footer-logo a {
+    margin-top:-10px; 
+    width: 182px;
+    height: 54px;
+    background: url("../image/logo2.jpg")
+}
+.banner .banner-logo img{
+    height: 400px;
+    width: 900px;
+    overflow: hidden;
+}
+.banner .banner-index{
+    position: absolute;
+    top:150px;
+    left: 50%;
+    margin-left:-383px;
+}
+.banner-index .text-logo{
+    width: 776px;
+    height: 117px;
+    background: url("../image/PSD快速转化HTML_03.jpg")
+}
+.banner-index  .wi {
+    margin-top:10px;
+    text-align: center;
+    color: #fff; 
+}
+
+.banner-index  .wi .line{
+    display: inline-block;
+    width: 60px;
+    border-top:1px solid #fff; 
+    vertical-align: middle;
+}
+.banner-index  .wi .as{
+    margin: 0 20px;
+    display: inline-block;
+}
+
+
+
